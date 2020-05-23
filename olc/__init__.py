@@ -1,1 +1,1 @@
-from olc.coordinates import *
+from .coordinates import *
