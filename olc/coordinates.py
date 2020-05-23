@@ -11,6 +11,19 @@ class Area:
     def north(self):
         kwargs = self._vert(1)
         return Area(**kwargs)
+    def ne(self):
+        kwargs = self._mutate(1, 1)
+        return Area(**kwargs)
+    def se(self):
+        kwargs = self._mutate(-1, 1)
+        return Area(**kwargs)
+    def sw(self):
+        kwargs = self._mutate(-1, -1)
+        return Area(**kwargs)
+    def nw(self):
+        kwargs = self._mutate(1, -1)
+        return Area(**kwargs)
+        
     
     def olc(self):
         return self.yH + self.xH + self.yL + self.xL
@@ -48,26 +61,22 @@ class Area:
                 self.space[iH], 
                 self.space[iL]
                 ]
-
-    def _horiz(self, diff):
-        xH, xL = self._increment(self.xH, self.xL, diff)
+    
+    def _mutate(self, yD, xD):
+        yH, yL = self._increment(self.yH, self.yL, yD)
+        xH, xL = self._increment(self.xH, self.xL, xD)
         kwargs = {
-                'yH': self.yH,
+                'yH': yH,
                 'xH': xH,
-                'yL': self.yL,
+                'yL': yL,
                 'xL': xL
                 }
         return kwargs
 
 
+    def _horiz(self, delta):
+        return self._mutate(0, delta)
+
+
     def _vert(self, diff):
-        yH, yL = self._increment(self.yH, self.yL, diff)
-        kwargs = {
-                'yH': yH,
-                'xH': self.xH,
-                'yL': yL,
-                'xL': self.xL
-                }
-        return kwargs
-
-
+        return self._mutate(delta, 0)
