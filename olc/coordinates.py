@@ -1,16 +1,16 @@
-class Coord:
+class Area:
     def east(self):
         kwargs = self._horiz(1)
-        return Coord(**kwargs)
+        return Area(**kwargs)
     def west(self):
         kwargs = self._horiz(-1)
-        return Coord(**kwargs)
+        return Area(**kwargs)
     def south(self):
         kwargs = self._vert(-1)
-        return Coord(**kwargs)
+        return Area(**kwargs)
     def north(self):
         kwargs = self._vert(1)
-        return Coord(**kwargs)
+        return Area(**kwargs)
     
     def olc(self):
         return self.yH + self.xH + self.yL + self.xL
@@ -19,16 +19,20 @@ class Coord:
         self.chars = "23456789CFGHJMPQRVWX"
         self.space = list(self.chars)
         self.base = len(self.space)
+
         if olc:
             self.yH = olc[0]
             self.xH = olc[1]
             self.yL = olc[2]
             self.xL = olc[3]
         else:
-            self.xH = xH
             self.yH = yH
-            self.xL = xL
+            self.xH = xH
             self.yL = yL
+            self.xL = xL
+        if not (self.xH in self.space and self.yH in self.space and self.xL in self.space and self.yL in self.space):
+            raise ValueError('Invalid OLC: {}{}{}{}'.format(yH, xH, yL, xL))
+
         self.x = ''.join([self.xH, self.xL])
         self.y = ''.join([self.yH, self.yL])
     
@@ -40,13 +44,6 @@ class Coord:
         iH = self.space.index(nH) + int(iL / self.base)
         iL = iL % self.base
 
-        print('{}{}: {},{} -> {},{}'.format(
-            nH, nL,
-            self.space.index(nH),
-            self.space.index(nL),
-            iH, iL
-            )
-        )
         return [
                 self.space[iH], 
                 self.space[iL]
