@@ -31,7 +31,7 @@ class Area:
             self.yL = yL
             self.xL = xL
         if not (self.xH in self.space and self.yH in self.space and self.xL in self.space and self.yL in self.space):
-            raise ValueError('Invalid OLC: {}{}{}{}'.format(yH, xH, yL, xL))
+            raise ValueError('Invalid OLC: {}{}{}{}'.format(self.yH, self.xH, self.yL, self.xL))
 
         self.x = ''.join([self.xH, self.xL])
         self.y = ''.join([self.yH, self.yL])
