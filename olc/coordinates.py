@@ -78,5 +78,5 @@ class Area:
         return self._mutate(0, delta)
 
 
-    def _vert(self, diff):
+    def _vert(self, delta):
         return self._mutate(delta, 0)
