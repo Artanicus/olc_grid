@@ -1,82 +1,46 @@
+from openlocationcode import openlocationcode as olclib
+from box import Box
+
 class Area:
-    def east(self):
-        kwargs = self._horiz(1)
-        return Area(**kwargs)
-    def west(self):
-        kwargs = self._horiz(-1)
-        return Area(**kwargs)
-    def south(self):
-        kwargs = self._vert(-1)
-        return Area(**kwargs)
-    def north(self):
-        kwargs = self._vert(1)
-        return Area(**kwargs)
-    def ne(self):
-        kwargs = self._mutate(1, 1)
-        return Area(**kwargs)
-    def se(self):
-        kwargs = self._mutate(-1, 1)
-        return Area(**kwargs)
-    def sw(self):
-        kwargs = self._mutate(-1, -1)
-        return Area(**kwargs)
-    def nw(self):
-        kwargs = self._mutate(1, -1)
-        return Area(**kwargs)
-        
-    
-    def olc(self):
-        return self.yH + self.xH + self.yL + self.xL
-
-    def __init__(self, olc = None, xH = None, yH = None, xL = None, yL = None, **kwargs):
-        self.chars = "23456789CFGHJMPQRVWX"
-        self.space = list(self.chars)
-        self.base = len(self.space)
-
+    def __init__(self, olc=None, coords=None, get_grid=True):
+        self.coords = Box()
         if olc:
-            self.yH = olc[0]
-            self.xH = olc[1]
-            self.yL = olc[2]
-            self.xL = olc[3]
+            self.olc = olc
+            decoded = olclib.decode(olc)
+            self.coords.lat = decoded.latitudeLo
+            self.coords.lon = decoded.longitudeLo
+        elif coords:
+            if isinstance(coords, Box):
+                self.coords = coords
+            elif isinstance(coords, str):
+                self.coords.lat = float(coords.split(',')[0])
+                self.coords.lon = float(coords.split(',')[1])
+            else:
+                raise ValueError('Invalid coordinates: {}'.format(coords))
+            self.olc = olclib.encode(self.coords.lat, self.coords.lon)
         else:
-            self.yH = yH
-            self.xH = xH
-            self.yL = yL
-            self.xL = xL
-        if not (self.xH in self.space and self.yH in self.space and self.xL in self.space and self.yL in self.space):
-            raise ValueError('Invalid OLC: {}{}{}{}'.format(self.yH, self.xH, self.yL, self.xL))
+            raise ValueError('Invalid OLC: {code}'.format(code=olc))
+        self.increment_lat = 0.0025 # Comes from the grid split by 20: ((1/20)/20)
+        self.increment_lon = 0.0025 # grids are symmetrical even if the globe isn't
 
-        self.x = ''.join([self.xH, self.xL])
-        self.y = ''.join([self.yH, self.yL])
-    
+        if get_grid:
+            self.get_grid()
+
+    def get_grid(self):
+        self.N = Area(coords=self.shift(1,0), get_grid=False)
+        self.NE = Area(coords=self.shift(1,1), get_grid=False)
+        self.E = Area(coords=self.shift(0,1), get_grid=False)
+        self.SE = Area(coords=self.shift(-1,1), get_grid=False)
+        self.S = Area(coords=self.shift(-1,0), get_grid=False)
+        self.SW = Area(coords=self.shift(-1,-1), get_grid=False)
+        self.W = Area(coords=self.shift(0,-1), get_grid=False)
+        self.NW = Area(coords=self.shift(1,-1), get_grid=False)
+
+    def shift(self, lat_delta, lon_delta):
+        coords = Box()
+        coords.lat = self.coords.lat + (lat_delta * self.increment_lat)
+        coords.lon = self.coords.lon + (lon_delta * self.increment_lon)
+        return coords
+
     def __str__(self):
-        return self.olc()
-
-    def _increment(self, nH, nL, delta):
-        iL = self.space.index(nL) + delta
-        iH = self.space.index(nH) + int(iL / self.base)
-        iL = iL % self.base
-
-        return [
-                self.space[iH], 
-                self.space[iL]
-                ]
-    
-    def _mutate(self, yD, xD):
-        yH, yL = self._increment(self.yH, self.yL, yD)
-        xH, xL = self._increment(self.xH, self.xL, xD)
-        kwargs = {
-                'yH': yH,
-                'xH': xH,
-                'yL': yL,
-                'xL': xL
-                }
-        return kwargs
-
-
-    def _horiz(self, delta):
-        return self._mutate(0, delta)
-
-
-    def _vert(self, delta):
-        return self._mutate(delta, 0)
+        return self.olc
